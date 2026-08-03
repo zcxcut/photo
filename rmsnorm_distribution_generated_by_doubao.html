@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>RMSNorm Time 3D Scatter</title>
+    <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+    <style>
+        body {margin:0; padding:0; height:100vh;}
+        #graph {width:100%; height:100%;}
+    </style>
+</head>
+<body>
+<div id="graph"></div>
+<script>
+const data_raw = [
+{"batch":1,"dim":512,"float_cpu":3,"float_gpu":199323,"half_gpu":350},
+{"batch":1,"dim":768,"float_cpu":4,"float_gpu":269,"half_gpu":202},
+{"batch":1,"dim":1024,"float_cpu":5,"float_gpu":167,"half_gpu":236},
+{"batch":1,"dim":1592,"float_cpu":8,"float_gpu":210,"half_gpu":null},
+{"batch":1,"dim":2048,"float_cpu":10,"float_gpu":247,"half_gpu":132},
+{"batch":1,"dim":4096,"float_cpu":19,"float_gpu":271,"half_gpu":244},
+
+{"batch":2,"dim":512,"float_cpu":8,"float_gpu":232,"half_gpu":273},
+{"batch":2,"dim":768,"float_cpu":7,"float_gpu":189,"half_gpu":207},
+{"batch":2,"dim":1024,"float_cpu":9,"float_gpu":251,"half_gpu":358},
+{"batch":2,"dim":1592,"float_cpu":16,"float_gpu":231,"half_gpu":281},
+{"batch":2,"dim":2048,"float_cpu":21,"float_gpu":220,"half_gpu":154},
+{"batch":2,"dim":4096,"float_cpu":38,"float_gpu":254,"half_gpu":339},
+
+{"batch":4,"dim":512,"float_cpu":10,"float_gpu":168,"half_gpu":236},
+{"batch":4,"dim":768,"float_cpu":15,"float_gpu":140,"half_gpu":146},
+{"batch":4,"dim":1024,"float_cpu":17,"float_gpu":202,"half_gpu":106},
+{"batch":4,"dim":1592,"float_cpu":30,"float_gpu":117,"half_gpu":158},
+{"batch":4,"dim":2048,"float_cpu":45,"float_gpu":146,"half_gpu":132},
+{"batch":4,"dim":4096,"float_cpu":94,"float_gpu":201,"half_gpu":156},
+
+{"batch":8,"dim":512,"float_cpu":21,"float_gpu":188,"half_gpu":267},
+{"batch":8,"dim":768,"float_cpu":33,"float_gpu":334,"half_gpu":192},
+{"batch":8,"dim":1024,"float_cpu":42,"float_gpu":130,"half_gpu":301},
+{"batch":8,"dim":1592,"float_cpu":67,"float_gpu":272,"half_gpu":353},
+{"batch":8,"dim":2048,"float_cpu":95,"float_gpu":279,"half_gpu":392},
+{"batch":8,"dim":4096,"float_cpu":155,"float_gpu":332,"half_gpu":371},
+
+{"batch":16,"dim":512,"float_cpu":43,"float_gpu":595,"half_gpu":191},
+{"batch":16,"dim":768,"float_cpu":63,"float_gpu":206,"half_gpu":146},
+{"batch":16,"dim":1024,"float_cpu":111,"float_gpu":319,"half_gpu":238},
+{"batch":16,"dim":1592,"float_cpu":173,"float_gpu":156,"half_gpu":347},
+{"batch":16,"dim":2048,"float_cpu":179,"float_gpu":256,"half_gpu":232},
+{"batch":16,"dim":4096,"float_cpu":322,"float_gpu":262,"half_gpu":288},
+
+{"batch":32,"dim":512,"float_cpu":86,"float_gpu":254,"half_gpu":963},
+{"batch":32,"dim":768,"float_cpu":148,"float_gpu":236,"half_gpu":255},
+{"batch":32,"dim":1024,"float_cpu":193,"float_gpu":231,"half_gpu":243},
+{"batch":32,"dim":1592,"float_cpu":274,"float_gpu":328,"half_gpu":232},
+{"batch":32,"dim":2048,"float_cpu":293,"float_gpu":407,"half_gpu":826},
+{"batch":32,"dim":4096,"float_cpu":638,"float_gpu":443,"half_gpu":414},
+
+{"batch":64,"dim":512,"float_cpu":157,"float_gpu":296,"half_gpu":194},
+{"batch":64,"dim":768,"float_cpu":271,"float_gpu":817,"half_gpu":566},
+{"batch":64,"dim":1024,"float_cpu":310,"float_gpu":299,"half_gpu":278},
+{"batch":64,"dim":1592,"float_cpu":549,"float_gpu":1070,"half_gpu":373},
+{"batch":64,"dim":2048,"float_cpu":603,"float_gpu":369,"half_gpu":970},
+{"batch":64,"dim":4096,"float_cpu":1164,"float_gpu":1044,"half_gpu":539},
+
+{"batch":128,"dim":512,"float_cpu":330,"float_gpu":395,"half_gpu":342},
+{"batch":128,"dim":768,"float_cpu":557,"float_gpu":848,"half_gpu":277},
+{"batch":128,"dim":1024,"float_cpu":650,"float_gpu":918,"half_gpu":402},
+{"batch":128,"dim":1592,"float_cpu":945,"float_gpu":903,"half_gpu":595},
+{"batch":128,"dim":2048,"float_cpu":1164,"float_gpu":1185,"half_gpu":1070},
+{"batch":128,"dim":4096,"float_cpu":2332,"float_gpu":1534,"half_gpu":1206},
+
+{"batch":256,"dim":512,"float_cpu":660,"float_gpu":400,"half_gpu":427},
+{"batch":256,"dim":768,"float_cpu":1102,"float_gpu":860,"half_gpu":890},
+{"batch":256,"dim":1024,"float_cpu":1184,"float_gpu":1141,"half_gpu":498},
+{"batch":256,"dim":1592,"float_cpu":1796,"float_gpu":1417,"half_gpu":1900},
+{"batch":256,"dim":2048,"float_cpu":2920,"float_gpu":1781,"half_gpu":1183},
+{"batch":256,"dim":4096,"float_cpu":5104,"float_gpu":2419,"half_gpu":1565},
+
+{"batch":512,"dim":512,"float_cpu":1421,"float_gpu":1002,"half_gpu":975},
+{"batch":512,"dim":768,"float_cpu":1889,"float_gpu":1114,"half_gpu":990},
+{"batch":512,"dim":1024,"float_cpu":2445,"float_gpu":2323,"half_gpu":1356},
+{"batch":512,"dim":1592,"float_cpu":3728,"float_gpu":4051,"half_gpu":2789},
+{"batch":512,"dim":2048,"float_cpu":4960,"float_gpu":2586,"half_gpu":1523},
+{"batch":512,"dim":4096,"float_cpu":10303,"float_gpu":3174,"half_gpu":3052},
+];
+
+// 拆分三组数据
+function extract(key){
+    let x=[],y=[],z=[],text=[];
+    data_raw.forEach(d=>{
+        if(d[key]==null) return;
+        x.push(d.batch);
+        y.push(d.dim);
+        z.push(d[key]);
+        text.push(`batch=${d.batch}, dim=${d.dim}<br>time=${d[key]} us`);
+    });
+    return {x,y,z,text};
+}
+
+const cpu_float = extract("float_cpu");
+const gpu_float = extract("float_gpu");
+const gpu_half  = extract("half_gpu");
+
+const traces = [
+    {
+        name:"float CPU",
+        type:"scatter3d",
+        mode:"markers",
+        x:cpu_float.x, y:cpu_float.y, z:cpu_float.z,
+        text:cpu_float.text, hovertemplate:"%{text}<extra></extra>",
+        marker:{size:4, color:"#1f77b4", opacity:0.8}
+    },
+    {
+        name:"float GPU",
+        type:"scatter3d",
+        mode:"markers",
+        x:gpu_float.x, y:gpu_float.y, z:gpu_float.z,
+        text:gpu_float.text, hovertemplate:"%{text}<extra></extra>",
+        marker:{size:4, color:"#ff7f0e", opacity:0.8}
+    },
+    {
+        name:"half GPU",
+        type:"scatter3d",
+        mode:"markers",
+        x:gpu_half.x, y:gpu_half.y, z:gpu_half.z,
+        text:gpu_half.text, hovertemplate:"%{text}<extra></extra>",
+        marker:{size:4, color:"#2ca02c", opacity:0.8}
+    }
+];
+
+const layout = {
+    title:"RMSNorm 耗时 3D对比 (μs)",
+    scene:{
+        xaxis:{title:"Batch Size"},
+        yaxis:{title:"Hidden Dimension"},
+        zaxis:{title:"耗时 us", type:"log"},
+    },
+    width:1400,
+    height:900
+};
+
+Plotly.newPlot(document.getElementById("graph"), traces, layout);
+</script>
+</body>
+</html>
